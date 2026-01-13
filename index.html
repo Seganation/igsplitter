@@ -3,9 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Splitter</title>
+    <title>GRID//SPLIT</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --black: #0a0a0a;
+            --card-bg: #151515;
+            --card-border: #222;
+            --amber: #ff6b35;
+            --amber-glow: rgba(255, 107, 53, 0.4);
+            --text-primary: #e8e6e3;
+            --text-secondary: #999;
+            --text-dim: #666;
+            --grid-line: rgba(255, 107, 53, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,226 +28,539 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #0f0f0f;
-            color: #fff;
+            font-family: 'Azeret Mono', monospace;
+            background: var(--black);
+            color: var(--text-primary);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Grain texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+            animation: grain 8s steps(10) infinite;
+        }
+
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 10%); }
+            80% { transform: translate(-15%, 0); }
+            90% { transform: translate(10%, 5%); }
+        }
+
+        /* Grid background pattern */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--card-border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            pointer-events: none;
         }
 
         .container {
-            max-width: 800px;
-            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 3rem;
+            text-align: center;
+            position: relative;
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            text-shadow: 0 0 30px var(--amber-glow);
+            margin-bottom: 0.5rem;
+            animation: fadeInDown 0.8s ease-out;
         }
 
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Upload Area */
         .upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: rgba(102, 126, 234, 0.05);
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            padding: 4rem 2rem;
+            cursor: crosshair;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
             margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--amber), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .upload-area:hover::before {
+            opacity: 0.1;
         }
 
         .upload-area:hover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--amber);
+            box-shadow: 0 0 40px var(--amber-glow);
         }
 
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.15);
+            border-color: var(--amber);
+            background: rgba(255, 107, 53, 0.05);
+            box-shadow: 0 0 60px var(--amber-glow);
+        }
+
+        .upload-area.dragover .upload-icon {
+            transform: scale(1.1) rotate(5deg);
         }
 
         #fileInput {
             display: none;
         }
 
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+        }
+
         .upload-text {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
         }
 
         .upload-subtext {
-            font-size: 0.9rem;
-            color: #999;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
         }
 
-        .controls {
-            background: #1a1a1a;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+        /* Preview Section */
+        .preview-section {
             display: none;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-container {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            padding: 2rem;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .preview-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .preview-img-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        #previewImg {
+            max-width: 100%;
+            max-height: 500px;
+            display: block;
+            filter: contrast(1.05) brightness(0.95);
+        }
+
+        /* Grid overlay on preview */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .grid-overlay.active {
+            opacity: 1;
+        }
+
+        .grid-overlay svg {
+            display: block;
+        }
+
+        /* Image metadata */
+        .image-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+        }
+
+        .meta-value {
+            font-size: 1rem;
+            color: var(--amber);
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls {
+            display: none;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
         }
 
         .controls.active {
             display: block;
         }
 
-        .control-group {
-            margin-bottom: 1.5rem;
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .control-group:last-child {
-            margin-bottom: 0;
+        .control-panel {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            padding: 1.5rem;
+            transition: border-color 0.3s;
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #999;
-            font-size: 0.9rem;
+        .control-panel:hover {
+            border-color: var(--amber);
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .button-group {
-            display: flex;
+        .control-label::before {
+            content: '//';
+            color: var(--amber);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.5rem;
         }
 
         .btn-option {
-            flex: 1;
-            padding: 0.75rem;
-            border: 2px solid #333;
-            background: #0f0f0f;
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
+            aspect-ratio: 1;
+            border: 2px solid var(--card-border);
+            background: var(--black);
+            color: var(--text-secondary);
+            cursor: crosshair;
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-family: 'Azeret Mono', monospace;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-option::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--amber);
+            transform: translate(-50%, -50%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.1;
+        }
+
+        .btn-option:hover::before {
+            width: 100%;
+            height: 100%;
         }
 
         .btn-option:hover {
-            border-color: #667eea;
+            border-color: var(--amber);
+            color: var(--text-primary);
         }
 
         .btn-option.active {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.2);
+            border-color: var(--amber);
+            background: var(--amber);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--amber-glow);
         }
 
-        .preview {
-            background: #1a1a1a;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+        .btn-option.active::before {
             display: none;
-            text-align: center;
         }
 
-        .preview.active {
-            display: block;
+        /* Action Button */
+        .action-section {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            padding: 2rem;
         }
 
-        .preview img {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 8px;
-        }
-
-        .filename {
-            margin-top: 1rem;
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .action-btn {
+        .split-btn {
             width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 1.5rem;
+            border: 2px solid var(--amber);
+            background: var(--black);
+            color: var(--amber);
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: 'Azeret Mono', monospace;
+            cursor: crosshair;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.2em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .action-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
+        .split-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--amber);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
         }
 
-        .action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .split-btn:hover::before {
+            left: 0;
         }
 
-        .action-btn.primary:disabled {
+        .split-btn:hover {
+            color: var(--black);
+            box-shadow: 0 0 40px var(--amber-glow);
+        }
+
+        .split-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
+        .split-btn:disabled:hover::before {
+            left: -100%;
+        }
+
+        .split-btn:disabled:hover {
+            color: var(--amber);
+            box-shadow: none;
+        }
+
+        /* Status */
         .status {
+            margin-top: 1.5rem;
             text-align: center;
-            margin-top: 1rem;
-            color: #667eea;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
             min-height: 1.5rem;
+            font-weight: 600;
+        }
+
+        .status.processing {
+            color: var(--amber);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         canvas {
             display: none;
         }
+
+        /* Crosshair cursor effect */
+        @media (hover: hover) {
+            .upload-area, .btn-option, .split-btn {
+                cursor: crosshair;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .control-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .upload-area {
+                padding: 3rem 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Image Splitter</h1>
+        <header>
+            <h1>GRID//SPLIT</h1>
+            <div class="subtitle">Precision Image Division</div>
+        </header>
 
         <div class="upload-area" id="uploadArea">
-            <div class="upload-text">Click to upload or drag & drop</div>
-            <div class="upload-subtext">Any image format supported</div>
+            <div class="upload-icon">╋</div>
+            <div class="upload-text">LOAD IMAGE</div>
+            <div class="upload-subtext">CLICK OR DROP // ALL FORMATS SUPPORTED</div>
             <input type="file" id="fileInput" accept="image/*">
         </div>
 
-        <div class="preview" id="preview">
-            <img id="previewImg" alt="Preview">
-            <div class="filename" id="filename"></div>
+        <div class="preview-section" id="previewSection">
+            <div class="preview-container">
+                <div class="preview-img-wrapper">
+                    <img id="previewImg" alt="Preview">
+                    <canvas id="gridOverlay" class="grid-overlay"></canvas>
+                </div>
+                <div class="image-meta" id="imageMeta">
+                    <div class="meta-item">
+                        <div class="meta-label">Filename</div>
+                        <div class="meta-value" id="metaFilename">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Dimensions</div>
+                        <div class="meta-value" id="metaDimensions">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Grid</div>
+                        <div class="meta-value" id="metaGrid">2×1</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Piece Size</div>
+                        <div class="meta-value" id="metaPieceSize">—</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="controls" id="controls">
-            <div class="control-group">
-                <label>Columns</label>
-                <div class="button-group">
-                    <button class="btn-option active" data-value="2" data-type="cols">2</button>
-                    <button class="btn-option" data-value="3" data-type="cols">3</button>
-                    <button class="btn-option" data-value="4" data-type="cols">4</button>
+            <div class="control-grid">
+                <div class="control-panel">
+                    <div class="control-label">Columns</div>
+                    <div class="button-grid">
+                        <button class="btn-option active" data-value="2" data-type="cols">2</button>
+                        <button class="btn-option" data-value="3" data-type="cols">3</button>
+                        <button class="btn-option" data-value="4" data-type="cols">4</button>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="control-label">Rows</div>
+                    <div class="button-grid">
+                        <button class="btn-option active" data-value="1" data-type="rows">1</button>
+                        <button class="btn-option" data-value="2" data-type="rows">2</button>
+                        <button class="btn-option" data-value="3" data-type="rows">3</button>
+                        <button class="btn-option" data-value="4" data-type="rows">4</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="control-group">
-                <label>Rows</label>
-                <div class="button-group">
-                    <button class="btn-option active" data-value="1" data-type="rows">1</button>
-                    <button class="btn-option" data-value="2" data-type="rows">2</button>
-                    <button class="btn-option" data-value="3" data-type="rows">3</button>
-                    <button class="btn-option" data-value="4" data-type="rows">4</button>
-                </div>
+            <div class="action-section">
+                <button class="split-btn" id="splitBtn">Execute Split</button>
+                <div class="status" id="status"></div>
             </div>
-
-            <button class="action-btn primary" id="splitBtn">Split & Download</button>
-            <div class="status" id="status"></div>
         </div>
     </div>
 
@@ -246,14 +574,21 @@
 
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
-        const preview = document.getElementById('preview');
+        const previewSection = document.getElementById('previewSection');
         const previewImg = document.getElementById('previewImg');
-        const filename = document.getElementById('filename');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const gridCtx = gridOverlay.getContext('2d');
         const controls = document.getElementById('controls');
         const splitBtn = document.getElementById('splitBtn');
         const status = document.getElementById('status');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false });
+
+        // Metadata elements
+        const metaFilename = document.getElementById('metaFilename');
+        const metaDimensions = document.getElementById('metaDimensions');
+        const metaGrid = document.getElementById('metaGrid');
+        const metaPieceSize = document.getElementById('metaPieceSize');
 
         // Upload area click
         uploadArea.addEventListener('click', () => fileInput.click());
@@ -295,8 +630,17 @@
                 img.onload = () => {
                     currentImage = img;
                     previewImg.src = e.target.result;
-                    filename.textContent = currentFileName;
-                    preview.classList.add('active');
+
+                    // Update metadata
+                    metaFilename.textContent = currentFileName.length > 20
+                        ? currentFileName.substring(0, 17) + '...'
+                        : currentFileName;
+                    metaDimensions.textContent = `${img.width}×${img.height}`;
+
+                    updateMetadata();
+                    drawGridOverlay();
+
+                    previewSection.classList.add('active');
                     controls.classList.add('active');
                     status.textContent = '';
                 };
@@ -304,6 +648,56 @@
             };
 
             reader.readAsDataURL(file);
+        }
+
+        // Draw grid overlay on preview
+        function drawGridOverlay() {
+            if (!currentImage) return;
+
+            const imgRect = previewImg.getBoundingClientRect();
+            const displayWidth = previewImg.offsetWidth;
+            const displayHeight = previewImg.offsetHeight;
+
+            gridOverlay.width = displayWidth;
+            gridOverlay.height = displayHeight;
+            gridOverlay.style.width = displayWidth + 'px';
+            gridOverlay.style.height = displayHeight + 'px';
+
+            gridCtx.clearRect(0, 0, displayWidth, displayHeight);
+            gridCtx.strokeStyle = 'rgba(255, 107, 53, 0.6)';
+            gridCtx.lineWidth = 2;
+
+            const cellWidth = displayWidth / selectedCols;
+            const cellHeight = displayHeight / selectedRows;
+
+            // Draw vertical lines
+            for (let i = 1; i < selectedCols; i++) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(i * cellWidth, 0);
+                gridCtx.lineTo(i * cellWidth, displayHeight);
+                gridCtx.stroke();
+            }
+
+            // Draw horizontal lines
+            for (let i = 1; i < selectedRows; i++) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, i * cellHeight);
+                gridCtx.lineTo(displayWidth, i * cellHeight);
+                gridCtx.stroke();
+            }
+
+            gridOverlay.classList.add('active');
+        }
+
+        // Update metadata display
+        function updateMetadata() {
+            if (!currentImage) return;
+
+            metaGrid.textContent = `${selectedCols}×${selectedRows}`;
+
+            const pieceWidth = Math.floor(currentImage.width / selectedCols);
+            const pieceHeight = Math.floor(currentImage.height / selectedRows);
+            metaPieceSize.textContent = `${pieceWidth}×${pieceHeight}`;
         }
 
         // Button selection
@@ -322,7 +716,21 @@
                 } else {
                     selectedRows = value;
                 }
+
+                updateMetadata();
+                drawGridOverlay();
             });
+        });
+
+        // Redraw grid on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (currentImage) {
+                    drawGridOverlay();
+                }
+            }, 100);
         });
 
         // Split and download
@@ -330,7 +738,8 @@
             if (!currentImage) return;
 
             splitBtn.disabled = true;
-            status.textContent = 'Processing...';
+            status.classList.add('processing');
+            status.textContent = 'PROCESSING...';
 
             try {
                 const zip = new JSZip();
@@ -376,11 +785,11 @@
                         imgFolder.file(pieceFileName, blob);
 
                         count++;
-                        status.textContent = `Processing... ${count}/${total}`;
+                        status.textContent = `PROCESSING... ${count}/${total}`;
                     }
                 }
 
-                status.textContent = 'Creating ZIP...';
+                status.textContent = 'CREATING ZIP...';
 
                 // Generate zip
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -392,13 +801,15 @@
                 link.download = `${baseName}_split.zip`;
                 link.click();
 
-                status.textContent = 'Done!';
+                status.textContent = 'COMPLETE';
+                status.classList.remove('processing');
                 setTimeout(() => {
                     status.textContent = '';
                 }, 3000);
 
             } catch (error) {
-                status.textContent = 'Error: ' + error.message;
+                status.textContent = 'ERROR: ' + error.message;
+                status.classList.remove('processing');
             } finally {
                 splitBtn.disabled = false;
             }
