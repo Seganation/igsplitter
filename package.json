@@ -1,0 +1,26 @@
+{
+  "name": "gridsplit",
+  "version": "1.0.0",
+  "description": "Free Instagram Grid Splitter - Split images into perfect grids for Instagram carousel posts",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "instagram",
+    "grid",
+    "splitter",
+    "image",
+    "carousel",
+    "social-media",
+    "instagram-grid",
+    "image-splitter"
+  ],
+  "author": "GRID//SPLIT",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/igsplitter"
+  },
+  "homepage": "https://igsplitter.vercel.app"
+}

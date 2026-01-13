@@ -1,0 +1,7 @@
+# robots.txt for igsplitter.vercel.app
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://igsplitter.vercel.app/sitemap.xml
