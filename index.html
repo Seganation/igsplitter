@@ -8,10 +8,10 @@
     <meta name="google-site-verification" content="nuCXGtgR7IIPurnpp9BwqJ4tHXScI2RZ4GTJqG7EUfE" />
 
     <!-- Primary Meta Tags -->
-    <title>Instagram Grid Splitter - Free Image Splitter for Instagram Posts | GRID//SPLIT</title>
-    <meta name="title" content="Instagram Grid Splitter - Free Image Splitter for Instagram Posts | GRID//SPLIT">
-    <meta name="description" content="Free online Instagram grid splitter tool. Split images into perfect grids for Instagram carousel posts. No quality loss, no data loss. Works 100% in your browser. Split images into 2x2, 3x3, 4x4 grids and more.">
-    <meta name="keywords" content="instagram grid splitter, instagram image splitter, split image for instagram, instagram carousel splitter, grid image splitter, instagram grid post, split photo instagram, instagram grid maker, free image splitter, instagram puzzle grid, image grid splitter, instagram grid tool, split pictures for instagram, carousel image splitter, instagram layout tool">
+    <title>Instagram Grid Splitter & A4 Poster Printer - Free Image Splitter | GRID//SPLIT</title>
+    <meta name="title" content="Instagram Grid Splitter & A4 Poster Printer - Free Image Splitter | GRID//SPLIT">
+    <meta name="description" content="Free online image splitter tool. Split images for Instagram carousel posts OR split large posters into A4 pages for printing. Zero quality loss, 100% browser-based. Create 2x2, 3x3, 4x4 grids or print any poster on A4 paper.">
+    <meta name="keywords" content="instagram grid splitter, instagram image splitter, split image for instagram, instagram carousel splitter, grid image splitter, instagram grid post, split photo instagram, instagram grid maker, free image splitter, instagram puzzle grid, image grid splitter, poster splitter, A4 poster printer, split poster for printing, large image to A4, print poster on A4, poster to PDF, multi page poster print, tile poster printing, split image for printing">
     <meta name="author" content="GRID//SPLIT">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
@@ -31,8 +31,8 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://igsplitter.vercel.app/">
-    <meta property="og:title" content="Instagram Grid Splitter - Free Image Splitter for Instagram Posts">
-    <meta property="og:description" content="Free online Instagram grid splitter tool. Split images into perfect grids for Instagram carousel posts. No quality loss, works 100% in your browser.">
+    <meta property="og:title" content="Instagram Grid Splitter & A4 Poster Printer - Free Image Splitter">
+    <meta property="og:description" content="Free online image splitter. Split images for Instagram carousels OR split large posters into A4 pages for printing. Zero quality loss, 100% in browser.">
     <meta property="og:image" content="https://igsplitter.vercel.app/og-image.png">
     <meta property="og:site_name" content="GRID//SPLIT">
     <meta property="og:locale" content="en_US">
@@ -40,8 +40,8 @@
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://igsplitter.vercel.app/">
-    <meta property="twitter:title" content="Instagram Grid Splitter - Free Image Splitter for Instagram Posts">
-    <meta property="twitter:description" content="Free online Instagram grid splitter tool. Split images into perfect grids for Instagram carousel posts. No quality loss, works 100% in your browser.">
+    <meta property="twitter:title" content="Instagram Grid Splitter & A4 Poster Printer - Free Image Splitter">
+    <meta property="twitter:description" content="Free online image splitter. Split images for Instagram carousels OR split large posters into A4 pages for printing. Zero quality loss, 100% in browser.">
     <meta property="twitter:image" content="https://igsplitter.vercel.app/og-image.png">
 
     <!-- Additional SEO -->
@@ -57,9 +57,9 @@
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "GRID//SPLIT - Instagram Grid Splitter",
+      "name": "GRID//SPLIT - Instagram Grid Splitter & A4 Poster Printer",
       "url": "https://igsplitter.vercel.app/",
-      "description": "Free online Instagram grid splitter tool. Split images into perfect grids for Instagram carousel posts with zero quality loss.",
+      "description": "Free online image splitter tool. Split images for Instagram carousel posts OR split large posters into A4 pages for printing. Zero quality loss, 100% browser-based.",
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "Any",
       "offers": {
@@ -75,12 +75,16 @@
       "featureList": [
         "Split images for Instagram grids",
         "Support for 2x1 to 4x4 grids",
+        "A4 poster splitter for large prints",
+        "Auto-calculate A4 pages needed",
+        "Multiple DPI options (72, 150, 300)",
+        "Generate single print-ready PDF with all pages",
         "Zero quality loss",
         "100% client-side processing",
         "All image formats supported",
         "Free to use",
         "No registration required",
-        "Download as ZIP file"
+        "Download as ZIP or PDF"
       ],
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
       "screenshot": "https://igsplitter.vercel.app/og-image.png"
@@ -88,6 +92,7 @@
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -303,6 +308,7 @@
             padding: 2rem;
             position: relative;
             margin-bottom: 1rem;
+            overflow: hidden;
         }
 
         .preview-wrapper {
@@ -315,13 +321,18 @@
             position: relative;
             display: flex;
             justify-content: center;
+            align-items: center;
+            max-height: 420px;
+            overflow: hidden;
         }
 
-        #previewImg {
+        #previewImg,
+        #a4PreviewImg {
             max-width: 100%;
-            max-height: 500px;
+            max-height: 400px;
             display: block;
             filter: contrast(1.05) brightness(0.95);
+            object-fit: contain;
         }
 
         /* Grid overlay on preview */
@@ -575,6 +586,136 @@
                 padding: 3rem 1.5rem;
             }
         }
+
+        /* Section Divider */
+        .section-divider {
+            margin: 5rem 0 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+        }
+
+        .section-divider h2 {
+            display: inline-block;
+            background: var(--black);
+            padding: 0 2rem;
+            position: relative;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 0 0 30px var(--amber-glow);
+        }
+
+        .section-divider .section-subtitle {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        /* A4 specific styles */
+        .a4-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .a4-preview-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 107, 53, 0.05);
+            border: 1px dashed var(--amber);
+        }
+
+        .a4-grid-visual {
+            display: grid;
+            gap: 4px;
+            max-width: 300px;
+        }
+
+        .a4-cell {
+            aspect-ratio: 210/297;
+            background: var(--card-bg);
+            border: 1px solid var(--amber);
+            min-width: 30px;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+        }
+
+        .dpi-selector {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .dpi-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--card-border);
+            background: var(--black);
+            color: var(--text-secondary);
+            cursor: crosshair;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: 'Azeret Mono', monospace;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+
+        .dpi-btn:hover {
+            border-color: var(--amber);
+            color: var(--text-primary);
+        }
+
+        .dpi-btn.active {
+            border-color: var(--amber);
+            background: var(--amber);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--amber-glow);
+        }
+
+        .dpi-btn small {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 400;
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .warning-box {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid var(--amber);
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--amber);
+        }
+
+        .warning-box::before {
+            content: '⚠ ';
+        }
     </style>
 </head>
 <body>
@@ -646,6 +787,76 @@
             </div>
         </div>
 
+        <!-- A4 POSTER SPLITTER SECTION -->
+        <div class="section-divider">
+            <h2>POSTER//PRINT</h2>
+            <span class="section-subtitle">A4 Poster Splitter for Large Prints</span>
+        </div>
+
+        <div class="upload-area" id="a4UploadArea">
+            <div class="upload-icon">⊞</div>
+            <div class="upload-text">LOAD POSTER</div>
+            <div class="upload-subtext">UPLOAD LARGE IMAGE // SPLIT TO A4 FOR PRINTING</div>
+            <input type="file" id="a4FileInput" accept="image/*">
+        </div>
+
+        <div class="preview-section" id="a4PreviewSection">
+            <div class="preview-container">
+                <div class="preview-img-wrapper">
+                    <img id="a4PreviewImg" alt="Poster preview - split image for A4 printing">
+                    <canvas id="a4GridOverlay" class="grid-overlay"></canvas>
+                </div>
+                <div class="a4-info-grid" id="a4InfoGrid">
+                    <div class="meta-item">
+                        <div class="meta-label">Filename</div>
+                        <div class="meta-value" id="a4MetaFilename">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Image Size</div>
+                        <div class="meta-value" id="a4MetaDimensions">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Print Size</div>
+                        <div class="meta-value" id="a4MetaPrintSize">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">A4 Grid</div>
+                        <div class="meta-value" id="a4MetaGrid">—</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Total Pages</div>
+                        <div class="meta-value" id="a4MetaPages">—</div>
+                    </div>
+                </div>
+
+                <!-- Visual A4 Grid Preview -->
+                <div class="a4-preview-visual" id="a4PreviewVisual">
+                    <div class="a4-grid-visual" id="a4GridVisual">
+                        <!-- Grid cells will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls" id="a4Controls">
+            <div class="control-panel" style="margin-bottom: 2rem;">
+                <div class="control-label">Print Quality (DPI)</div>
+                <div class="dpi-selector">
+                    <button class="dpi-btn" data-dpi="72">72<small>Draft</small></button>
+                    <button class="dpi-btn active" data-dpi="150">150<small>Standard</small></button>
+                    <button class="dpi-btn" data-dpi="300">300<small>High Quality</small></button>
+                </div>
+                <div class="warning-box" id="a4Warning" style="display: none;">
+                    Image resolution may be too low for selected DPI. Consider using a lower DPI for better results.
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="split-btn" id="a4SplitBtn">Generate Poster PDF</button>
+                <div class="status" id="a4Status"></div>
+            </div>
+        </div>
+
         <!-- SEO Content Section -->
         <section style="margin-top: 4rem; padding: 2rem; background: var(--card-bg); border: 1px solid var(--card-border); font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
             <h2 style="font-size: 1.25rem; color: var(--amber); margin-bottom: 1rem; font-weight: 600;">Free Instagram Grid Splitter - Create Stunning Instagram Carousel Posts</h2>
@@ -675,6 +886,38 @@
             </p>
             <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim);">
                 <strong>Keywords:</strong> Instagram grid splitter, Instagram image splitter, split image for Instagram, Instagram carousel splitter, grid image splitter, Instagram grid post, split photo Instagram, Instagram grid maker, free image splitter, Instagram puzzle grid, carousel image splitter
+            </p>
+        </section>
+
+        <!-- A4 Poster Splitter SEO Content Section -->
+        <section style="margin-top: 2rem; padding: 2rem; background: var(--card-bg); border: 1px solid var(--card-border); font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+            <h2 style="font-size: 1.25rem; color: var(--amber); margin-bottom: 1rem; font-weight: 600;">Free A4 Poster Splitter - Print Large Images on Multiple A4 Pages</h2>
+            <p style="margin-bottom: 1rem;">
+                Want to print a large poster, artwork, or image but only have a regular A4 printer? Our free A4 poster splitter automatically divides your image into perfectly sized A4 pages that you can print and assemble into a full-size poster. No expensive poster printing services needed!
+            </p>
+            <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 0.75rem; margin-top: 1.5rem; font-weight: 600;">How the A4 Poster Splitter Works</h3>
+            <ol style="margin-bottom: 1rem; padding-left: 1.5rem;">
+                <li style="margin-bottom: 0.5rem;">Upload your large image, poster, or artwork</li>
+                <li style="margin-bottom: 0.5rem;">Our smart engine automatically calculates how many A4 pages are needed</li>
+                <li style="margin-bottom: 0.5rem;">Select your print quality (72 DPI for draft, 150 DPI standard, 300 DPI high quality)</li>
+                <li style="margin-bottom: 0.5rem;">Click "Generate Poster PDF" to create a print-ready PDF file</li>
+                <li style="margin-bottom: 0.5rem;">Download a single PDF containing all A4 pages in order</li>
+                <li style="margin-bottom: 0.5rem;">Print all pages on A4 paper and tape/glue them together to create your poster</li>
+            </ol>
+            <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 0.75rem; margin-top: 1.5rem; font-weight: 600;">Why Use Our Poster to A4 Splitter?</h3>
+            <ul style="margin-bottom: 1rem; padding-left: 1.5rem;">
+                <li style="margin-bottom: 0.5rem;"><strong>Smart Auto-Calculation:</strong> Automatically determines the exact number of A4 pages needed</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Zero Margins:</strong> Full-bleed printing with no wasted space - pages align perfectly</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Print-Ready PDFs:</strong> Direct PDF output ready for any printer</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Multiple DPI Options:</strong> Choose quality based on your printer and image resolution</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Single PDF Output:</strong> One PDF file with all pages in order - easy to print</li>
+                <li style="margin-bottom: 0.5rem;"><strong>100% Free & Private:</strong> All processing in your browser - images never uploaded</li>
+            </ul>
+            <p style="margin-bottom: 0.5rem;">
+                Perfect for printing Pinterest finds, digital artwork, movie posters, maps, family photos, and any large image you want to display. Turn any image into a wall-sized poster using just your home printer!
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim);">
+                <strong>Keywords:</strong> A4 poster splitter, split image for printing, poster to A4, large image to A4 pages, print poster on A4 paper, multi page poster print, tile poster printing, poster PDF splitter, rasterbator alternative, block poster maker, print large image on multiple pages
             </p>
         </section>
     </div>
@@ -927,6 +1170,343 @@
                 status.classList.remove('processing');
             } finally {
                 splitBtn.disabled = false;
+            }
+        });
+
+        // ============================================
+        // A4 POSTER SPLITTER ENGINE
+        // ============================================
+
+        // A4 dimensions in mm
+        const A4_WIDTH_MM = 210;
+        const A4_HEIGHT_MM = 297;
+
+        // Calculate A4 pixel dimensions at different DPIs
+        function getA4PixelDimensions(dpi) {
+            // 1 inch = 25.4mm
+            const widthPx = Math.round((A4_WIDTH_MM / 25.4) * dpi);
+            const heightPx = Math.round((A4_HEIGHT_MM / 25.4) * dpi);
+            return { width: widthPx, height: heightPx };
+        }
+
+        // A4 State
+        let a4CurrentImage = null;
+        let a4CurrentFileName = '';
+        let a4SelectedDpi = 150;
+        let a4Cols = 0;
+        let a4Rows = 0;
+
+        // A4 DOM Elements
+        const a4UploadArea = document.getElementById('a4UploadArea');
+        const a4FileInput = document.getElementById('a4FileInput');
+        const a4PreviewSection = document.getElementById('a4PreviewSection');
+        const a4PreviewImg = document.getElementById('a4PreviewImg');
+        const a4GridOverlay = document.getElementById('a4GridOverlay');
+        const a4GridCtx = a4GridOverlay.getContext('2d');
+        const a4Controls = document.getElementById('a4Controls');
+        const a4SplitBtn = document.getElementById('a4SplitBtn');
+        const a4Status = document.getElementById('a4Status');
+        const a4Warning = document.getElementById('a4Warning');
+        const a4GridVisual = document.getElementById('a4GridVisual');
+
+        // A4 Metadata Elements
+        const a4MetaFilename = document.getElementById('a4MetaFilename');
+        const a4MetaDimensions = document.getElementById('a4MetaDimensions');
+        const a4MetaPrintSize = document.getElementById('a4MetaPrintSize');
+        const a4MetaGrid = document.getElementById('a4MetaGrid');
+        const a4MetaPages = document.getElementById('a4MetaPages');
+
+        // A4 Upload area click
+        a4UploadArea.addEventListener('click', () => a4FileInput.click());
+
+        // A4 Drag and drop
+        a4UploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            a4UploadArea.classList.add('dragover');
+        });
+
+        a4UploadArea.addEventListener('dragleave', () => {
+            a4UploadArea.classList.remove('dragover');
+        });
+
+        a4UploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            a4UploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleA4File(file);
+            }
+        });
+
+        // A4 File input change
+        a4FileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleA4File(file);
+            }
+        });
+
+        // Handle A4 file upload
+        function handleA4File(file) {
+            a4CurrentFileName = file.name;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    a4CurrentImage = img;
+                    a4PreviewImg.src = e.target.result;
+
+                    // Update metadata
+                    a4MetaFilename.textContent = a4CurrentFileName.length > 20
+                        ? a4CurrentFileName.substring(0, 17) + '...'
+                        : a4CurrentFileName;
+                    a4MetaDimensions.textContent = `${img.width}×${img.height}px`;
+
+                    calculateA4Grid();
+                    drawA4GridOverlay();
+                    renderA4GridVisual();
+
+                    a4PreviewSection.classList.add('active');
+                    a4Controls.classList.add('active');
+                    a4Status.textContent = '';
+                };
+                img.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Calculate A4 grid based on image size and DPI
+        function calculateA4Grid() {
+            if (!a4CurrentImage) return;
+
+            const a4Px = getA4PixelDimensions(a4SelectedDpi);
+
+            // Calculate how many A4 sheets needed
+            a4Cols = Math.ceil(a4CurrentImage.width / a4Px.width);
+            a4Rows = Math.ceil(a4CurrentImage.height / a4Px.height);
+
+            // Calculate physical print size
+            const printWidthMM = (a4CurrentImage.width / a4SelectedDpi) * 25.4;
+            const printHeightMM = (a4CurrentImage.height / a4SelectedDpi) * 25.4;
+            const printWidthCM = (printWidthMM / 10).toFixed(1);
+            const printHeightCM = (printHeightMM / 10).toFixed(1);
+
+            // Update metadata
+            a4MetaPrintSize.textContent = `${printWidthCM}×${printHeightCM}cm`;
+            a4MetaGrid.textContent = `${a4Cols}×${a4Rows}`;
+            a4MetaPages.textContent = `${a4Cols * a4Rows}`;
+
+            // Check if image resolution is too low for selected DPI
+            const effectiveDpiX = a4CurrentImage.width / (a4Cols * A4_WIDTH_MM / 25.4);
+            const effectiveDpiY = a4CurrentImage.height / (a4Rows * A4_HEIGHT_MM / 25.4);
+            const minEffectiveDpi = Math.min(effectiveDpiX, effectiveDpiY);
+
+            if (minEffectiveDpi < a4SelectedDpi * 0.5) {
+                a4Warning.style.display = 'block';
+            } else {
+                a4Warning.style.display = 'none';
+            }
+        }
+
+        // Draw A4 grid overlay on preview
+        function drawA4GridOverlay() {
+            if (!a4CurrentImage) return;
+
+            const displayWidth = a4PreviewImg.offsetWidth;
+            const displayHeight = a4PreviewImg.offsetHeight;
+
+            a4GridOverlay.width = displayWidth;
+            a4GridOverlay.height = displayHeight;
+            a4GridOverlay.style.width = displayWidth + 'px';
+            a4GridOverlay.style.height = displayHeight + 'px';
+
+            a4GridCtx.clearRect(0, 0, displayWidth, displayHeight);
+            a4GridCtx.strokeStyle = 'rgba(255, 107, 53, 0.6)';
+            a4GridCtx.lineWidth = 2;
+
+            const cellWidth = displayWidth / a4Cols;
+            const cellHeight = displayHeight / a4Rows;
+
+            // Draw vertical lines
+            for (let i = 1; i < a4Cols; i++) {
+                a4GridCtx.beginPath();
+                a4GridCtx.moveTo(i * cellWidth, 0);
+                a4GridCtx.lineTo(i * cellWidth, displayHeight);
+                a4GridCtx.stroke();
+            }
+
+            // Draw horizontal lines
+            for (let i = 1; i < a4Rows; i++) {
+                a4GridCtx.beginPath();
+                a4GridCtx.moveTo(0, i * cellHeight);
+                a4GridCtx.lineTo(displayWidth, i * cellHeight);
+                a4GridCtx.stroke();
+            }
+
+            // Draw cell labels
+            a4GridCtx.fillStyle = 'rgba(255, 107, 53, 0.8)';
+            a4GridCtx.font = '12px Azeret Mono';
+            a4GridCtx.textAlign = 'center';
+            a4GridCtx.textBaseline = 'middle';
+
+            for (let row = 0; row < a4Rows; row++) {
+                for (let col = 0; col < a4Cols; col++) {
+                    const x = (col + 0.5) * cellWidth;
+                    const y = (row + 0.5) * cellHeight;
+                    a4GridCtx.fillText(`${row + 1}-${col + 1}`, x, y);
+                }
+            }
+
+            a4GridOverlay.classList.add('active');
+        }
+
+        // Render visual A4 grid preview
+        function renderA4GridVisual() {
+            a4GridVisual.innerHTML = '';
+            a4GridVisual.style.gridTemplateColumns = `repeat(${a4Cols}, 1fr)`;
+
+            for (let row = 0; row < a4Rows; row++) {
+                for (let col = 0; col < a4Cols; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'a4-cell';
+                    cell.textContent = `${row + 1}-${col + 1}`;
+                    a4GridVisual.appendChild(cell);
+                }
+            }
+        }
+
+        // DPI selector
+        document.querySelectorAll('.dpi-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.dpi-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                a4SelectedDpi = parseInt(btn.dataset.dpi);
+
+                if (a4CurrentImage) {
+                    calculateA4Grid();
+                    drawA4GridOverlay();
+                    renderA4GridVisual();
+                }
+            });
+        });
+
+        // Redraw A4 grid on window resize
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (a4CurrentImage) {
+                    drawA4GridOverlay();
+                }
+            }, 100);
+        });
+
+        // A4 Split and download - Single PDF with all pages, image centered on canvas
+        a4SplitBtn.addEventListener('click', async () => {
+            if (!a4CurrentImage) return;
+
+            a4SplitBtn.disabled = true;
+            a4Status.classList.add('processing');
+            a4Status.textContent = 'INITIALIZING...';
+
+            try {
+                const { jsPDF } = window.jspdf;
+
+                const a4Px = getA4PixelDimensions(a4SelectedDpi);
+                const imgWidth = a4CurrentImage.width;
+                const imgHeight = a4CurrentImage.height;
+
+                // Calculate total canvas size (all A4s combined)
+                const totalCanvasWidth = a4Cols * a4Px.width;
+                const totalCanvasHeight = a4Rows * a4Px.height;
+
+                // Calculate offset to center the image on the total canvas
+                const offsetX = Math.floor((totalCanvasWidth - imgWidth) / 2);
+                const offsetY = Math.floor((totalCanvasHeight - imgHeight) / 2);
+
+                // Create the full canvas with image centered
+                a4Status.textContent = 'CREATING CANVAS...';
+                const fullCanvas = document.createElement('canvas');
+                fullCanvas.width = totalCanvasWidth;
+                fullCanvas.height = totalCanvasHeight;
+                const fullCtx = fullCanvas.getContext('2d', { alpha: false });
+
+                // Fill with white background
+                fullCtx.fillStyle = '#FFFFFF';
+                fullCtx.fillRect(0, 0, totalCanvasWidth, totalCanvasHeight);
+
+                // Draw the image centered on the canvas
+                fullCtx.drawImage(a4CurrentImage, offsetX, offsetY);
+
+                // Create a single PDF with all pages
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                // Working canvas for each A4 page
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = a4Px.width;
+                pageCanvas.height = a4Px.height;
+                const pageCtx = pageCanvas.getContext('2d', { alpha: false });
+
+                let count = 0;
+                const total = a4Rows * a4Cols;
+                let isFirstPage = true;
+
+                for (let row = 0; row < a4Rows; row++) {
+                    for (let col = 0; col < a4Cols; col++) {
+                        a4Status.textContent = `PROCESSING PAGE ${count + 1}/${total}...`;
+
+                        // Add new page (except for first)
+                        if (!isFirstPage) {
+                            pdf.addPage('a4', 'portrait');
+                        }
+                        isFirstPage = false;
+
+                        // Calculate which portion of the full canvas to extract
+                        const srcX = col * a4Px.width;
+                        const srcY = row * a4Px.height;
+
+                        // Clear page canvas and fill white
+                        pageCtx.fillStyle = '#FFFFFF';
+                        pageCtx.fillRect(0, 0, a4Px.width, a4Px.height);
+
+                        // Extract the A4 portion from the full canvas
+                        pageCtx.drawImage(
+                            fullCanvas,
+                            srcX, srcY, a4Px.width, a4Px.height,
+                            0, 0, a4Px.width, a4Px.height
+                        );
+
+                        // Add to PDF - full A4 size, no margins
+                        const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+
+                        count++;
+                    }
+                }
+
+                a4Status.textContent = 'GENERATING PDF...';
+
+                // Download as single PDF
+                const baseName = a4CurrentFileName.substring(0, a4CurrentFileName.lastIndexOf('.')) || a4CurrentFileName;
+                pdf.save(`${baseName}_poster_${a4Cols}x${a4Rows}_${total}pages.pdf`);
+
+                a4Status.textContent = `COMPLETE - ${total} PAGE PDF GENERATED`;
+                a4Status.classList.remove('processing');
+                setTimeout(() => {
+                    a4Status.textContent = '';
+                }, 5000);
+
+            } catch (error) {
+                console.error('A4 Split Error:', error);
+                a4Status.textContent = 'ERROR: ' + error.message;
+                a4Status.classList.remove('processing');
+            } finally {
+                a4SplitBtn.disabled = false;
             }
         });
     </script>
