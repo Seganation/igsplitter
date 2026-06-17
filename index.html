@@ -716,6 +716,73 @@
         .warning-box::before {
             content: '⚠ ';
         }
+
+        .poster-canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 107, 53, 0.05);
+            border: 1px dashed var(--amber);
+        }
+
+        #posterPreviewCanvas {
+            max-width: 260px;
+            width: 100%;
+            display: block;
+        }
+
+        .poster-size-selector {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .poster-size-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--card-border);
+            background: var(--black);
+            color: var(--text-secondary);
+            cursor: crosshair;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: 'Azeret Mono', monospace;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+
+        .poster-size-btn:hover {
+            border-color: var(--amber);
+            color: var(--text-primary);
+        }
+
+        .poster-size-btn.active {
+            border-color: var(--amber);
+            background: var(--amber);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--amber-glow);
+        }
+
+        .poster-size-btn small {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 400;
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .info-box {
+            background: rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            padding: 0.75rem 1rem;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -802,9 +869,8 @@
 
         <div class="preview-section" id="a4PreviewSection">
             <div class="preview-container">
-                <div class="preview-img-wrapper">
-                    <img id="a4PreviewImg" alt="Poster preview - split image for A4 printing">
-                    <canvas id="a4GridOverlay" class="grid-overlay"></canvas>
+                <div class="poster-canvas-wrapper">
+                    <canvas id="posterPreviewCanvas"></canvas>
                 </div>
                 <div class="a4-info-grid" id="a4InfoGrid">
                     <div class="meta-item">
@@ -812,33 +878,36 @@
                         <div class="meta-value" id="a4MetaFilename">—</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-label">Image Size</div>
+                        <div class="meta-label">Source Size</div>
                         <div class="meta-value" id="a4MetaDimensions">—</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-label">Print Size</div>
+                        <div class="meta-label">Poster Size</div>
                         <div class="meta-value" id="a4MetaPrintSize">—</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-label">A4 Grid</div>
-                        <div class="meta-value" id="a4MetaGrid">—</div>
+                        <div class="meta-label">Canvas</div>
+                        <div class="meta-value">2×2 A4</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-label">Total Pages</div>
-                        <div class="meta-value" id="a4MetaPages">—</div>
-                    </div>
-                </div>
-
-                <!-- Visual A4 Grid Preview -->
-                <div class="a4-preview-visual" id="a4PreviewVisual">
-                    <div class="a4-grid-visual" id="a4GridVisual">
-                        <!-- Grid cells will be generated here -->
+                        <div class="meta-label">Pages</div>
+                        <div class="meta-value">4</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="controls" id="a4Controls">
+            <div class="control-panel" style="margin-bottom: 1.5rem;">
+                <div class="control-label">Target Poster Size</div>
+                <div class="poster-size-selector">
+                    <button class="poster-size-btn active" data-poster="a3p">A3<small>297×420mm · Portrait</small></button>
+                    <button class="poster-size-btn" data-poster="a3l">A3 ↔<small>420×297mm · Landscape</small></button>
+                    <button class="poster-size-btn" data-poster="a2">A2<small>420×594mm · Full</small></button>
+                </div>
+                <div class="info-box">Canvas is always 2×2 A4 (420×594mm) → print 4 sheets, cut white edges, assemble into poster</div>
+            </div>
+
             <div class="control-panel" style="margin-bottom: 2rem;">
                 <div class="control-label">Print Quality (DPI)</div>
                 <div class="dpi-selector">
@@ -847,7 +916,7 @@
                     <button class="dpi-btn" data-dpi="300">300<small>High Quality</small></button>
                 </div>
                 <div class="warning-box" id="a4Warning" style="display: none;">
-                    Image resolution may be too low for selected DPI. Consider using a lower DPI for better results.
+                    Image resolution too low for this poster size at selected DPI — try a lower DPI or smaller poster size.
                 </div>
             </div>
 
@@ -1080,14 +1149,13 @@
             });
         });
 
-        // Redraw grid on window resize
+        // Redraw overlays on window resize
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                if (currentImage) {
-                    drawGridOverlay();
-                }
+                if (currentImage) drawGridOverlay();
+                if (a4CurrentImage) drawPosterPreview();
             }, 100);
         });
 
@@ -1174,208 +1242,167 @@
         });
 
         // ============================================
-        // A4 POSTER SPLITTER ENGINE
+        // POSTER SPLITTER ENGINE (fixed 2×2 A4 canvas)
         // ============================================
 
-        // A4 dimensions in mm
-        const A4_WIDTH_MM = 210;
-        const A4_HEIGHT_MM = 297;
+        // Paper dims in mm
+        const A4_W_MM = 210;
+        const A4_H_MM = 297;
+        const CANVAS_W_MM = A4_W_MM * 2;  // 420mm
+        const CANVAS_H_MM = A4_H_MM * 2;  // 594mm
 
-        // Calculate A4 pixel dimensions at different DPIs
-        function getA4PixelDimensions(dpi) {
-            // 1 inch = 25.4mm
-            const widthPx = Math.round((A4_WIDTH_MM / 25.4) * dpi);
-            const heightPx = Math.round((A4_HEIGHT_MM / 25.4) * dpi);
-            return { width: widthPx, height: heightPx };
+        // Target poster sizes: image is scaled to fit this, centered on 2×2 canvas
+        const POSTER_SIZES = {
+            'a3p': { label: 'A3-Portrait',  w: 297, h: 420 },
+            'a3l': { label: 'A3-Landscape', w: 420, h: 297 },
+            'a2':  { label: 'A2',           w: 420, h: 594 },
+        };
+
+        function getA4Px(dpi) {
+            return {
+                w: Math.round((A4_W_MM / 25.4) * dpi),
+                h: Math.round((A4_H_MM / 25.4) * dpi)
+            };
         }
 
-        // A4 State
+        // State
         let a4CurrentImage = null;
         let a4CurrentFileName = '';
         let a4SelectedDpi = 150;
-        let a4Cols = 0;
-        let a4Rows = 0;
+        let selectedPosterKey = 'a3p';
 
-        // A4 DOM Elements
+        // DOM
         const a4UploadArea = document.getElementById('a4UploadArea');
         const a4FileInput = document.getElementById('a4FileInput');
         const a4PreviewSection = document.getElementById('a4PreviewSection');
-        const a4PreviewImg = document.getElementById('a4PreviewImg');
-        const a4GridOverlay = document.getElementById('a4GridOverlay');
-        const a4GridCtx = a4GridOverlay.getContext('2d');
+        const posterPreviewCanvas = document.getElementById('posterPreviewCanvas');
         const a4Controls = document.getElementById('a4Controls');
         const a4SplitBtn = document.getElementById('a4SplitBtn');
         const a4Status = document.getElementById('a4Status');
         const a4Warning = document.getElementById('a4Warning');
-        const a4GridVisual = document.getElementById('a4GridVisual');
-
-        // A4 Metadata Elements
         const a4MetaFilename = document.getElementById('a4MetaFilename');
         const a4MetaDimensions = document.getElementById('a4MetaDimensions');
         const a4MetaPrintSize = document.getElementById('a4MetaPrintSize');
-        const a4MetaGrid = document.getElementById('a4MetaGrid');
-        const a4MetaPages = document.getElementById('a4MetaPages');
 
-        // A4 Upload area click
+        // Upload
         a4UploadArea.addEventListener('click', () => a4FileInput.click());
-
-        // A4 Drag and drop
-        a4UploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            a4UploadArea.classList.add('dragover');
-        });
-
-        a4UploadArea.addEventListener('dragleave', () => {
-            a4UploadArea.classList.remove('dragover');
-        });
-
+        a4UploadArea.addEventListener('dragover', (e) => { e.preventDefault(); a4UploadArea.classList.add('dragover'); });
+        a4UploadArea.addEventListener('dragleave', () => a4UploadArea.classList.remove('dragover'));
         a4UploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             a4UploadArea.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleA4File(file);
-            }
+            if (file && file.type.startsWith('image/')) handleA4File(file);
         });
-
-        // A4 File input change
         a4FileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                handleA4File(file);
-            }
+            if (e.target.files[0]) handleA4File(e.target.files[0]);
         });
 
-        // Handle A4 file upload
         function handleA4File(file) {
             a4CurrentFileName = file.name;
             const reader = new FileReader();
-
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
                     a4CurrentImage = img;
-                    a4PreviewImg.src = e.target.result;
-
-                    // Update metadata
                     a4MetaFilename.textContent = a4CurrentFileName.length > 20
                         ? a4CurrentFileName.substring(0, 17) + '...'
                         : a4CurrentFileName;
                     a4MetaDimensions.textContent = `${img.width}×${img.height}px`;
-
-                    calculateA4Grid();
-                    drawA4GridOverlay();
-                    renderA4GridVisual();
-
+                    updatePosterInfo();
                     a4PreviewSection.classList.add('active');
                     a4Controls.classList.add('active');
                     a4Status.textContent = '';
+                    requestAnimationFrame(drawPosterPreview);
                 };
                 img.src = e.target.result;
             };
-
             reader.readAsDataURL(file);
         }
 
-        // Calculate A4 grid based on image size and DPI
-        function calculateA4Grid() {
+        function updatePosterInfo() {
             if (!a4CurrentImage) return;
+            const poster = POSTER_SIZES[selectedPosterKey];
+            a4MetaPrintSize.textContent = `${poster.w}×${poster.h}mm`;
 
-            const a4Px = getA4PixelDimensions(a4SelectedDpi);
-
-            // Calculate how many A4 sheets needed
-            a4Cols = Math.ceil(a4CurrentImage.width / a4Px.width);
-            a4Rows = Math.ceil(a4CurrentImage.height / a4Px.height);
-
-            // Calculate physical print size
-            const printWidthMM = (a4CurrentImage.width / a4SelectedDpi) * 25.4;
-            const printHeightMM = (a4CurrentImage.height / a4SelectedDpi) * 25.4;
-            const printWidthCM = (printWidthMM / 10).toFixed(1);
-            const printHeightCM = (printHeightMM / 10).toFixed(1);
-
-            // Update metadata
-            a4MetaPrintSize.textContent = `${printWidthCM}×${printHeightCM}cm`;
-            a4MetaGrid.textContent = `${a4Cols}×${a4Rows}`;
-            a4MetaPages.textContent = `${a4Cols * a4Rows}`;
-
-            // Check if image resolution is too low for selected DPI
-            const effectiveDpiX = a4CurrentImage.width / (a4Cols * A4_WIDTH_MM / 25.4);
-            const effectiveDpiY = a4CurrentImage.height / (a4Rows * A4_HEIGHT_MM / 25.4);
-            const minEffectiveDpi = Math.min(effectiveDpiX, effectiveDpiY);
-
-            if (minEffectiveDpi < a4SelectedDpi * 0.5) {
-                a4Warning.style.display = 'block';
-            } else {
-                a4Warning.style.display = 'none';
-            }
+            // Warn if image needs >2× upscale to fill poster at selected DPI
+            const posterWpx = Math.round((poster.w / 25.4) * a4SelectedDpi);
+            const posterHpx = Math.round((poster.h / 25.4) * a4SelectedDpi);
+            const scale = Math.min(posterWpx / a4CurrentImage.width, posterHpx / a4CurrentImage.height);
+            a4Warning.style.display = scale > 2 ? 'block' : 'none';
         }
 
-        // Draw A4 grid overlay on preview
-        function drawA4GridOverlay() {
+        function drawPosterPreview() {
             if (!a4CurrentImage) return;
+            const cvs = posterPreviewCanvas;
+            const dw = cvs.offsetWidth || 260;
+            const dh = dw * (CANVAS_H_MM / CANVAS_W_MM);
+            const dpr = window.devicePixelRatio || 1;
 
-            const displayWidth = a4PreviewImg.offsetWidth;
-            const displayHeight = a4PreviewImg.offsetHeight;
+            cvs.width = Math.round(dw * dpr);
+            cvs.height = Math.round(dh * dpr);
+            cvs.style.width = dw + 'px';
+            cvs.style.height = dh + 'px';
 
-            a4GridOverlay.width = displayWidth;
-            a4GridOverlay.height = displayHeight;
-            a4GridOverlay.style.width = displayWidth + 'px';
-            a4GridOverlay.style.height = displayHeight + 'px';
+            const ctx = cvs.getContext('2d');
+            ctx.scale(dpr, dpr);
 
-            a4GridCtx.clearRect(0, 0, displayWidth, displayHeight);
-            a4GridCtx.strokeStyle = 'rgba(255, 107, 53, 0.6)';
-            a4GridCtx.lineWidth = 2;
+            // White canvas (represents 2×2 A4 sheet)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, dw, dh);
 
-            const cellWidth = displayWidth / a4Cols;
-            const cellHeight = displayHeight / a4Rows;
+            const poster = POSTER_SIZES[selectedPosterKey];
+            const mmToPx = dw / CANVAS_W_MM;
 
-            // Draw vertical lines
-            for (let i = 1; i < a4Cols; i++) {
-                a4GridCtx.beginPath();
-                a4GridCtx.moveTo(i * cellWidth, 0);
-                a4GridCtx.lineTo(i * cellWidth, displayHeight);
-                a4GridCtx.stroke();
+            // Poster area on display
+            const pdw = poster.w * mmToPx;
+            const pdh = poster.h * mmToPx;
+            const pdx = (dw - pdw) / 2;
+            const pdy = (dh - pdh) / 2;
+
+            // Image scaled to fit poster (contain)
+            const imgScale = Math.min(pdw / a4CurrentImage.width, pdh / a4CurrentImage.height);
+            const iw = a4CurrentImage.width * imgScale;
+            const ih = a4CurrentImage.height * imgScale;
+            ctx.drawImage(a4CurrentImage, pdx + (pdw - iw) / 2, pdy + (pdh - ih) / 2, iw, ih);
+
+            // Dashed poster boundary (when smaller than full canvas)
+            if (poster.w < CANVAS_W_MM || poster.h < CANVAS_H_MM) {
+                ctx.strokeStyle = 'rgba(255, 107, 53, 0.45)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(pdx, pdy, pdw, pdh);
+                ctx.setLineDash([]);
             }
 
-            // Draw horizontal lines
-            for (let i = 1; i < a4Rows; i++) {
-                a4GridCtx.beginPath();
-                a4GridCtx.moveTo(0, i * cellHeight);
-                a4GridCtx.lineTo(displayWidth, i * cellHeight);
-                a4GridCtx.stroke();
-            }
+            // A4 cut lines (1 vertical + 1 horizontal through center)
+            ctx.strokeStyle = 'rgba(255, 107, 53, 0.85)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(dw / 2, 0); ctx.lineTo(dw / 2, dh); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, dh / 2); ctx.lineTo(dw, dh / 2); ctx.stroke();
 
-            // Draw cell labels
-            a4GridCtx.fillStyle = 'rgba(255, 107, 53, 0.8)';
-            a4GridCtx.font = '12px Azeret Mono';
-            a4GridCtx.textAlign = 'center';
-            a4GridCtx.textBaseline = 'middle';
-
-            for (let row = 0; row < a4Rows; row++) {
-                for (let col = 0; col < a4Cols; col++) {
-                    const x = (col + 0.5) * cellWidth;
-                    const y = (row + 0.5) * cellHeight;
-                    a4GridCtx.fillText(`${row + 1}-${col + 1}`, x, y);
-                }
-            }
-
-            a4GridOverlay.classList.add('active');
+            // Page number labels
+            const fs = Math.max(9, dw * 0.045);
+            const pad = dw * 0.07;
+            ctx.fillStyle = 'rgba(255, 107, 53, 0.75)';
+            ctx.font = `${fs}px Azeret Mono`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('1', pad, pad);
+            ctx.fillText('2', dw - pad, pad);
+            ctx.fillText('3', pad, dh - pad);
+            ctx.fillText('4', dw - pad, dh - pad);
         }
 
-        // Render visual A4 grid preview
-        function renderA4GridVisual() {
-            a4GridVisual.innerHTML = '';
-            a4GridVisual.style.gridTemplateColumns = `repeat(${a4Cols}, 1fr)`;
-
-            for (let row = 0; row < a4Rows; row++) {
-                for (let col = 0; col < a4Cols; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'a4-cell';
-                    cell.textContent = `${row + 1}-${col + 1}`;
-                    a4GridVisual.appendChild(cell);
-                }
-            }
-        }
+        // Poster size buttons
+        document.querySelectorAll('.poster-size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.poster-size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedPosterKey = btn.dataset.poster;
+                if (a4CurrentImage) { updatePosterInfo(); drawPosterPreview(); }
+            });
+        });
 
         // DPI selector
         document.querySelectorAll('.dpi-btn').forEach(btn => {
@@ -1383,26 +1410,11 @@
                 document.querySelectorAll('.dpi-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 a4SelectedDpi = parseInt(btn.dataset.dpi);
-
-                if (a4CurrentImage) {
-                    calculateA4Grid();
-                    drawA4GridOverlay();
-                    renderA4GridVisual();
-                }
+                if (a4CurrentImage) { updatePosterInfo(); drawPosterPreview(); }
             });
         });
 
-        // Redraw A4 grid on window resize
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (a4CurrentImage) {
-                    drawA4GridOverlay();
-                }
-            }, 100);
-        });
-
-        // A4 Split and download - Single PDF with all pages, image centered on canvas
+        // Generate PDF — always 4-page (2×2 A4), image scaled to poster size, centered
         a4SplitBtn.addEventListener('click', async () => {
             if (!a4CurrentImage) return;
 
@@ -1412,97 +1424,71 @@
 
             try {
                 const { jsPDF } = window.jspdf;
+                const poster = POSTER_SIZES[selectedPosterKey];
+                const a4px = getA4Px(a4SelectedDpi);
 
-                const a4Px = getA4PixelDimensions(a4SelectedDpi);
-                const imgWidth = a4CurrentImage.width;
-                const imgHeight = a4CurrentImage.height;
+                // Full 2×2 canvas in pixels
+                const canvasW = a4px.w * 2;
+                const canvasH = a4px.h * 2;
 
-                // Calculate total canvas size (all A4s combined)
-                const totalCanvasWidth = a4Cols * a4Px.width;
-                const totalCanvasHeight = a4Rows * a4Px.height;
+                // Poster area in pixels
+                const posterWpx = Math.round((poster.w / 25.4) * a4SelectedDpi);
+                const posterHpx = Math.round((poster.h / 25.4) * a4SelectedDpi);
 
-                // Calculate offset to center the image on the total canvas
-                const offsetX = Math.floor((totalCanvasWidth - imgWidth) / 2);
-                const offsetY = Math.floor((totalCanvasHeight - imgHeight) / 2);
+                // Scale image to fit poster (contain), then center image in poster, poster in canvas
+                const imgScale = Math.min(posterWpx / a4CurrentImage.width, posterHpx / a4CurrentImage.height);
+                const scaledW = Math.round(a4CurrentImage.width * imgScale);
+                const scaledH = Math.round(a4CurrentImage.height * imgScale);
+                const posterX = Math.round((canvasW - posterWpx) / 2);
+                const posterY = Math.round((canvasH - posterHpx) / 2);
+                const imgX = posterX + Math.round((posterWpx - scaledW) / 2);
+                const imgY = posterY + Math.round((posterHpx - scaledH) / 2);
 
-                // Create the full canvas with image centered
+                // Draw full 2×2 canvas
                 a4Status.textContent = 'CREATING CANVAS...';
                 const fullCanvas = document.createElement('canvas');
-                fullCanvas.width = totalCanvasWidth;
-                fullCanvas.height = totalCanvasHeight;
+                fullCanvas.width = canvasW;
+                fullCanvas.height = canvasH;
                 const fullCtx = fullCanvas.getContext('2d', { alpha: false });
-
-                // Fill with white background
                 fullCtx.fillStyle = '#FFFFFF';
-                fullCtx.fillRect(0, 0, totalCanvasWidth, totalCanvasHeight);
+                fullCtx.fillRect(0, 0, canvasW, canvasH);
+                fullCtx.drawImage(a4CurrentImage, imgX, imgY, scaledW, scaledH);
 
-                // Draw the image centered on the canvas
-                fullCtx.drawImage(a4CurrentImage, offsetX, offsetY);
-
-                // Create a single PDF with all pages
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                // Working canvas for each A4 page
+                // PDF — 4 pages in reading order: TL, TR, BL, BR
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const pageCanvas = document.createElement('canvas');
-                pageCanvas.width = a4Px.width;
-                pageCanvas.height = a4Px.height;
+                pageCanvas.width = a4px.w;
+                pageCanvas.height = a4px.h;
                 const pageCtx = pageCanvas.getContext('2d', { alpha: false });
 
-                let count = 0;
-                const total = a4Rows * a4Cols;
-                let isFirstPage = true;
+                const pages = [
+                    { col: 0, row: 0 }, { col: 1, row: 0 },
+                    { col: 0, row: 1 }, { col: 1, row: 1 }
+                ];
 
-                for (let row = 0; row < a4Rows; row++) {
-                    for (let col = 0; col < a4Cols; col++) {
-                        a4Status.textContent = `PROCESSING PAGE ${count + 1}/${total}...`;
+                for (let i = 0; i < pages.length; i++) {
+                    a4Status.textContent = `PROCESSING PAGE ${i + 1}/4...`;
+                    if (i > 0) pdf.addPage('a4', 'portrait');
 
-                        // Add new page (except for first)
-                        if (!isFirstPage) {
-                            pdf.addPage('a4', 'portrait');
-                        }
-                        isFirstPage = false;
+                    const { col, row } = pages[i];
+                    pageCtx.fillStyle = '#FFFFFF';
+                    pageCtx.fillRect(0, 0, a4px.w, a4px.h);
+                    pageCtx.drawImage(fullCanvas, col * a4px.w, row * a4px.h, a4px.w, a4px.h, 0, 0, a4px.w, a4px.h);
 
-                        // Calculate which portion of the full canvas to extract
-                        const srcX = col * a4Px.width;
-                        const srcY = row * a4Px.height;
-
-                        // Clear page canvas and fill white
-                        pageCtx.fillStyle = '#FFFFFF';
-                        pageCtx.fillRect(0, 0, a4Px.width, a4Px.height);
-
-                        // Extract the A4 portion from the full canvas
-                        pageCtx.drawImage(
-                            fullCanvas,
-                            srcX, srcY, a4Px.width, a4Px.height,
-                            0, 0, a4Px.width, a4Px.height
-                        );
-
-                        // Add to PDF - full A4 size, no margins
-                        const imgData = pageCanvas.toDataURL('image/jpeg', 1.0);
-                        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
-
-                        count++;
-                    }
+                    const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, A4_W_MM, A4_H_MM);
                 }
 
                 a4Status.textContent = 'GENERATING PDF...';
-
-                // Download as single PDF
                 const baseName = a4CurrentFileName.substring(0, a4CurrentFileName.lastIndexOf('.')) || a4CurrentFileName;
-                pdf.save(`${baseName}_poster_${a4Cols}x${a4Rows}_${total}pages.pdf`);
+                pdf.save(`${baseName}_${poster.label}_4pages.pdf`);
 
-                a4Status.textContent = `COMPLETE - ${total} PAGE PDF GENERATED`;
+                a4Status.textContent = 'COMPLETE — 4-PAGE PDF READY';
                 a4Status.classList.remove('processing');
-                setTimeout(() => {
-                    a4Status.textContent = '';
-                }, 5000);
+                setTimeout(() => { a4Status.textContent = ''; }, 5000);
 
             } catch (error) {
-                console.error('A4 Split Error:', error);
+                console.error(error);
                 a4Status.textContent = 'ERROR: ' + error.message;
                 a4Status.classList.remove('processing');
             } finally {
